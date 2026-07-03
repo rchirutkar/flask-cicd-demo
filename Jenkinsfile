@@ -1,6 +1,9 @@
 pipeline {
     agent any //Run this pipeline on any available Jenkins agent. Since we're using a single Jenkins instance, it will run inside our Jenkins Docker container.
 
+    environment {
+        VENV = "venv" //nstead of hardcoding venv everywhere, we define it once. This makes the pipeline easier to maintain.
+    }
     stages {
 
         stage('Checkout') { //This clones our GitHub repository into the Jenkins workspace.
@@ -22,12 +25,22 @@ pipeline {
                 echo 'Creating Python virtual environment...'
 
                 sh '''
-                    python3 -m venv venv
+                    python3 -m venv ${VENV}
                     . venv/bin/activate
                     python -m pip install --upgrade pip
                     pip install -r requirements.txt
                 '''
             }
+        }
+    }
+
+    post {
+        success {
+            echo "Build completed successfully."
+        }
+
+        failure {
+            echo "Build failed."
         }
     }
 }
