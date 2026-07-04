@@ -1,9 +1,16 @@
 pipeline {
-    agent any //Run this pipeline on any available Jenkins agent. Since we're using a single Jenkins instance, it will run inside our Jenkins Docker container.
+    // agent any //Run this pipeline on any available Jenkins agent. Since we're using a single Jenkins instance, it will run inside our Jenkins Docker container.
 
-    environment {
-        VENV = "venv" //nstead of hardcoding venv everywhere, we define it once. This makes the pipeline easier to maintain.
+    agent {
+        docker {
+            image 'python:3.12'
+        }
     }
+
+    // environment {
+    //     VENV = "venv" //nstead of hardcoding venv everywhere, we define it once. This makes the pipeline easier to maintain.
+    // }
+
     stages {
 
         stage('Checkout') { //This clones our GitHub repository into the Jenkins workspace.
@@ -14,21 +21,22 @@ pipeline {
             }
         }
 
-//This stage:
-// Creates a Python virtual environment.
-// Activates it.
-// Upgrades pip.
 // Installs all dependencies from requirements.txt.
 // This satisfies the Build requirement of the assignment.
         stage('Build') {
             steps {
-                echo 'Creating Python virtual environment...'
+                echo 'Installing dependencies...'
 
                 sh '''
-                    python3 -m venv ${VENV}
-                    . venv/bin/activate
-                    python -m pip install --upgrade pip
                     pip install -r requirements.txt
+                '''
+            }
+        }
+// Runs the unit tests using pytest. This satisfies the Test requirement of the assignment.
+        stage('Test') {
+            steps {
+                sh '''
+                    python -m pytest -v
                 '''
             }
         }
