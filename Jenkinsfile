@@ -7,9 +7,10 @@ pipeline {
         }
     }
 
-    // environment {
-    //     VENV = "venv" //nstead of hardcoding venv everywhere, we define it once. This makes the pipeline easier to maintain.
-    // }
+    environment {
+        VENV = "venv" //nstead of hardcoding venv everywhere, we define it once. This makes the pipeline easier to maintain.
+        HOME = "WORKSPACE" //Set the HOME environment variable to the Jenkins workspace. This is important for Python virtual environments.
+    }
 
     stages {
 
@@ -22,8 +23,6 @@ pipeline {
         }
 
 //This stage:
-// Creates a Python virtual environment.
-// Activates it.
 // Upgrades pip.
 // Installs all dependencies from requirements.txt.
 // This satisfies the Build requirement of the assignment.
@@ -32,11 +31,8 @@ pipeline {
                 echo 'Installing dependencies...'
 
                 sh '''
-                    python -m venv venv
-                    . venv/bin/activate
-
-                    python -m pip install --upgrade pip
-                    pip install -r requirements.txt
+                    python3 -m pip install --upgrade pip
+                    python3 -m pip install -r requirements.txt
                 '''
             }
         }
@@ -44,8 +40,8 @@ pipeline {
         stage('Test') {
             steps {
                 sh '''
-                    . venv/bin/activate
-                    python -m pytest -v
+                    export PYTHONPATH=$WORKSPACE
+                    python3 -m pytest -v
                 '''
             }
         }
