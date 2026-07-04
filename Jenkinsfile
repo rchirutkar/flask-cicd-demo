@@ -21,6 +21,10 @@ pipeline {
             }
         }
 
+//This stage:
+// Creates a Python virtual environment.
+// Activates it.
+// Upgrades pip.
 // Installs all dependencies from requirements.txt.
 // This satisfies the Build requirement of the assignment.
         stage('Build') {
@@ -28,6 +32,10 @@ pipeline {
                 echo 'Installing dependencies...'
 
                 sh '''
+                    python -m venv venv
+                    . venv/bin/activate
+
+                    python -m pip install --upgrade pip
                     pip install -r requirements.txt
                 '''
             }
@@ -36,6 +44,7 @@ pipeline {
         stage('Test') {
             steps {
                 sh '''
+                    . venv/bin/activate
                     python -m pytest -v
                 '''
             }
