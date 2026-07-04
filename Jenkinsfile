@@ -10,6 +10,8 @@ pipeline {
     environment {
         VENV = "venv" //nstead of hardcoding venv everywhere, we define it once. This makes the pipeline easier to maintain.
         HOME = "WORKSPACE" //Set the HOME environment variable to the Jenkins workspace. This is important for Python virtual environments.
+        MONGO_URI = credentials('mongo-uri')
+		SECRET_KEY = credentials('flask-secret')
     }
 
     stages {
