@@ -2,6 +2,7 @@ pipeline {
     // agent any //Run this pipeline on any available Jenkins agent. Since we're using a single Jenkins instance, it will run inside our Jenkins Docker container.
 
     agent {
+        label 'Jenkins' // Run this pipeline on the Jenkins agent. This is important because we want to ensure that the pipeline runs in a consistent environment, which is provided by the Jenkins agent.
         docker {
             image 'python:3.12'
         }
