@@ -10,7 +10,6 @@ pipeline {
 
     environment {
         VENV = "venv" //nstead of hardcoding venv everywhere, we define it once. This makes the pipeline easier to maintain.
-        HOME = "WORKSPACE" //Set the HOME environment variable to the Jenkins workspace. This is important for Python virtual environments.
         MONGO_URI = credentials('mongo-uri')
 		SECRET_KEY = credentials('flask-secret')
     }
@@ -21,6 +20,7 @@ pipeline {
 
             steps {
                 echo 'Checking out source code...'
+				cleanWs()
                 checkout scm //Without this step, Jenkins has no source code to build.
             }
         }
@@ -34,6 +34,7 @@ pipeline {
                 echo 'Installing dependencies...'
 
                 sh '''
+					export HOME=$WORKSPACE
                     python3 -m pip install --upgrade pip
                     python3 -m pip install -r requirements.txt
                 '''
@@ -43,7 +44,8 @@ pipeline {
         stage('Test') {
             steps {
                 sh '''
-                    export PYTHONPATH=$WORKSPACE
+					export HOME=$WORKSPACE
+	            	export PYTHONPATH=$WORKSPACE
                     python3 -m pytest -v
                 '''
             }
@@ -64,20 +66,31 @@ pipeline {
 // pulls the latest code from GitHub, installs any new dependencies, and restarts the Flask application.
         stage('Deploy') {
             steps {
+				// sshagent(credentials: ['ranjeet-ec2-ssh-key']) {
+				//     ...
+				// }
                 sshagent(credentials: ['ranjeet-ec2-ssh-key']) {
                     sh '''
                         ssh -o StrictHostKeyChecking=no ubuntu@13.126.82.12 "
                             cd /home/ubuntu/apps/flask-cicd-demo &&
 
+							git fetch origin
+							
+							git reset --hard origin/main
+							
                             git pull origin main &&
 
                             source venv/bin/activate &&
 
-                            pip install -r requirements.txt &&
+							python -m pip install -r requirements.txt &&
 
                             pkill -f 'python app.py' || true &&
 
-                            nohup python app.py > app.log 2>&1 &
+                            nohup python app.py > app.log 2>&1 < /dev/null &
+
+							sleep 5 &&
+
+                    		curl http://localhost:8000/health
                         "
                     '''
                 }
