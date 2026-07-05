@@ -1,12 +1,12 @@
 pipeline {
-    // agent any //Run this pipeline on any available Jenkins agent. Since we're using a single Jenkins instance, it will run inside our Jenkins Docker container.
+    agent any //Run this pipeline on any available Jenkins agent. Since we're using a single Jenkins instance, it will run inside our Jenkins Docker container.
 
-    agent {
-        docker {
-            image 'python:3.12'
-			//label 'Built-In Node' // Run this pipeline on the Jenkins agent. This is important because we want to ensure that the pipeline runs in a consistent environment, which is provided by the Jenkins agent.
-        }
-    }
+   //  agent {
+   //      docker {
+   //          image 'python:3.12'
+			// //label 'Built-In Node' // Run this pipeline on the Jenkins agent. This is important because we want to ensure that the pipeline runs in a consistent environment, which is provided by the Jenkins agent.
+   //      }
+   //  }
 
     environment {
         VENV = "venv" //nstead of hardcoding venv everywhere, we define it once. This makes the pipeline easier to maintain.
