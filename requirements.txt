@@ -1,5 +1,6 @@
 Flask 
 Flask-PyMongo 
+pymongo
 python-dotenv 
 # bson
 pytest
