@@ -64,8 +64,8 @@ pipeline {
         // }
 // This stage deploys the application to the EC2 instance. It uses SSH to connect to the EC2 instance, 
 // pulls the latest code from GitHub, installs any new dependencies, and restarts the Flask application.
-        stage('Deploy') {
-            steps {
+        // stage('Deploy') {
+            // steps {
 				// sshagent(credentials: ['ranjeet-ec2-ssh-key']) {
 				//     ...
 				// }
@@ -94,30 +94,29 @@ pipeline {
        //                  "
        //              '''
        //          }
-				stage('Deploy') {
-				    steps {
-				        sh '''
-				            cd /home/ubuntu/apps/flask-cicd-demo
-				
-				            git fetch origin
-				            git reset --hard origin/main
-				
-				            source venv/bin/activate
-				
-				            python -m pip install -r requirements.txt
-				
-				            pkill -f "python app.py" || true
-				
-				            nohup python app.py > app.log 2>&1 < /dev/null &
-				
-				            sleep 5
-				
-				            curl http://localhost:8000/health
-				        '''
-				    }
+			stage('Deploy') {
+				steps {
+					sh '''
+						cd /home/ubuntu/apps/flask-cicd-demo
+			
+						git fetch origin
+						git reset --hard origin/main
+			
+						source venv/bin/activate
+			
+						python -m pip install -r requirements.txt
+			
+						pkill -f "python app.py" || true
+			
+						nohup python app.py > app.log 2>&1 < /dev/null &
+			
+						sleep 5
+			
+						curl http://localhost:8000/health
+					'''
 				}
-            }
-        }
+			}
+		}    
     }
 
     post {
