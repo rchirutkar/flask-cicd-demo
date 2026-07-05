@@ -65,58 +65,60 @@ pipeline {
 // This stage deploys the application to the EC2 instance. It uses SSH to connect to the EC2 instance, 
 // pulls the latest code from GitHub, installs any new dependencies, and restarts the Flask application.
         // stage('Deploy') {
-            // steps {
-				// sshagent(credentials: ['ranjeet-ec2-ssh-key']) {
-				//     ...
-				// }
-       //          sshagent(credentials: ['ranjeet-ec2-ssh-key']) {
-       //              sh '''
-       //                  ssh -o StrictHostKeyChecking=no ubuntu@13.126.82.12 "
-       //                      cd /home/ubuntu/apps/flask-cicd-demo &&
+        //     steps {
+		// 		sshagent(credentials: ['ranjeet-ec2-ssh-key']) {
+		// 		    ...
+		// 		}
+        //         sshagent(credentials: ['ranjeet-ec2-ssh-key']) {
+        //             sh '''
+        //                 ssh -o StrictHostKeyChecking=no ubuntu@13.126.82.12 "
+        //                     cd /home/ubuntu/apps/flask-cicd-demo &&
 
-							// git fetch origin
+		// 					git fetch origin
 							
-							// git reset --hard origin/main
+		// 					git reset --hard origin/main
 							
-       //                      git pull origin main &&
+        //                     git pull origin main &&
 
-       //                      source venv/bin/activate &&
+        //                     source venv/bin/activate &&
 
-							// python -m pip install -r requirements.txt &&
+		// 					python -m pip install -r requirements.txt &&
 
-       //                      pkill -f 'python app.py' || true &&
+        //                     pkill -f 'python app.py' || true &&
 
-       //                      nohup python app.py > app.log 2>&1 < /dev/null &
+        //                     nohup python app.py > app.log 2>&1 < /dev/null &
 
-							// sleep 5 &&
+		// 					sleep 5 &&
 
-       //              		curl http://localhost:8000/health
-       //                  "
-       //              '''
-       //          }
-			stage('Deploy') {
-				steps {
-					sh '''
-						cd /home/ubuntu/apps/flask-cicd-demo
-			
-						git fetch origin
-						git reset --hard origin/main
-			
-						source venv/bin/activate
-			
-						python -m pip install -r requirements.txt
-			
-						pkill -f "python app.py" || true
-			
-						nohup python app.py > app.log 2>&1 < /dev/null &
-			
-						sleep 5
-			
-						curl http://localhost:8000/health
-					'''
-				}
-			}
-		}    
+        //             		curl http://localhost:8000/health
+        //                 "
+        //             '''
+        //         }
+        //     }
+		// }  
+
+        stage('Deploy') {
+            steps {
+                sh '''
+                    cd /home/ubuntu/apps/flask-cicd-demo
+        
+                    git fetch origin
+                    git reset --hard origin/main
+        
+                    source venv/bin/activate
+        
+                    python -m pip install -r requirements.txt
+        
+                    pkill -f "python app.py" || true
+        
+                    nohup python app.py > app.log 2>&1 < /dev/null &
+        
+                    sleep 5
+        
+                    curl http://localhost:8000/health
+                '''
+            }
+        }  
     }
 
     post {
