@@ -65,7 +65,7 @@ def health():
 #     app.run(debug=True, port=8000)
 
 if __name__ == "__main__":
-    app.run(
+    app.runlow(
         host="0.0.0.0",
         port=int(os.getenv("PORT", 8000)),
         debug=os.getenv("FLASK_DEBUG", "False") == "True"
