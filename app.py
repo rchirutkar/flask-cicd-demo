@@ -56,5 +56,10 @@ def delete_student(student_id):
     mongo.db.students.delete_one({"_id": ObjectId(student_id)})
     return redirect(url_for('index'))
 
+# Health check endpoint
+@app.route("/health")
+def health():
+    return {"status": "UP"}, 200
+
 if __name__ == '__main__':
     app.run(debug=True, port=8000)
