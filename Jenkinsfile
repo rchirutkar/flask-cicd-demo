@@ -113,7 +113,7 @@ pipeline {
                     git fetch origin
                     git reset --hard origin/main
         
-                    source venv/bin/activate
+                    . venv/bin/activate
         
                     python -m pip install -r requirements.txt
         
