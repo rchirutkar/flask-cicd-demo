@@ -1,12 +1,12 @@
 pipeline {
-    agent any //Run this pipeline on any available Jenkins agent. Since we're using a single Jenkins instance, it will run inside our Jenkins Docker container.
+    // agent any //Run this pipeline on any available Jenkins agent. Since we're using a single Jenkins instance, it will run inside our Jenkins Docker container.
 
-   //  agent {
+    agent {
+		label 'Ranjeet_node' // Run this pipeline on the Jenkins agent. This is important because we want to ensure that the pipeline runs in a consistent environment, which is provided by the Jenkins agent.
    //      docker {
    //          image 'python:3.12'
-			// //label 'Built-In Node' // Run this pipeline on the Jenkins agent. This is important because we want to ensure that the pipeline runs in a consistent environment, which is provided by the Jenkins agent.
    //      }
-   //  }
+    }
 
     environment {
         VENV = "venv" //nstead of hardcoding venv everywhere, we define it once. This makes the pipeline easier to maintain.
@@ -69,31 +69,53 @@ pipeline {
 				// sshagent(credentials: ['ranjeet-ec2-ssh-key']) {
 				//     ...
 				// }
-                sshagent(credentials: ['ranjeet-ec2-ssh-key']) {
-                    sh '''
-                        ssh -o StrictHostKeyChecking=no ubuntu@13.126.82.12 "
-                            cd /home/ubuntu/apps/flask-cicd-demo &&
+       //          sshagent(credentials: ['ranjeet-ec2-ssh-key']) {
+       //              sh '''
+       //                  ssh -o StrictHostKeyChecking=no ubuntu@13.126.82.12 "
+       //                      cd /home/ubuntu/apps/flask-cicd-demo &&
 
-							git fetch origin
+							// git fetch origin
 							
-							git reset --hard origin/main
+							// git reset --hard origin/main
 							
-                            git pull origin main &&
+       //                      git pull origin main &&
 
-                            source venv/bin/activate &&
+       //                      source venv/bin/activate &&
 
-							python -m pip install -r requirements.txt &&
+							// python -m pip install -r requirements.txt &&
 
-                            pkill -f 'python app.py' || true &&
+       //                      pkill -f 'python app.py' || true &&
 
-                            nohup python app.py > app.log 2>&1 < /dev/null &
+       //                      nohup python app.py > app.log 2>&1 < /dev/null &
 
-							sleep 5 &&
+							// sleep 5 &&
 
-                    		curl http://localhost:8000/health
-                        "
-                    '''
-                }
+       //              		curl http://localhost:8000/health
+       //                  "
+       //              '''
+       //          }
+				stage('Deploy') {
+				    steps {
+				        sh '''
+				            cd /home/ubuntu/apps/flask-cicd-demo
+				
+				            git fetch origin
+				            git reset --hard origin/main
+				
+				            source venv/bin/activate
+				
+				            python -m pip install -r requirements.txt
+				
+				            pkill -f "python app.py" || true
+				
+				            nohup python app.py > app.log 2>&1 < /dev/null &
+				
+				            sleep 5
+				
+				            curl http://localhost:8000/health
+				        '''
+				    }
+				}
             }
         }
     }
