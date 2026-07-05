@@ -47,6 +47,41 @@ pipeline {
                 '''
             }
         }
+// This stage tests the SSH connection to the EC2 instance. 
+// It uses the SSH key stored in Jenkins credentials to connect to the EC2 instance 
+// and run a simple command (hostname and whoami) to verify that the connection is successful.
+        // stage('Test SSH') {
+        //     steps {
+        //         sshagent(credentials: ['ec2-ssh-key']) {
+        //             sh '''
+        //                 ssh -o StrictHostKeyChecking=no ubuntu@13.126.82.12 "hostname && whoami"
+        //             '''
+        //         }
+        //     }
+        // }
+// This stage deploys the application to the EC2 instance. It uses SSH to connect to the EC2 instance, 
+// pulls the latest code from GitHub, installs any new dependencies, and restarts the Flask application.
+        stage('Deploy') {
+            steps {
+                sshagent(credentials: ['ranjeet-ec2-ssh-key']) {
+                    sh '''
+                        ssh -o StrictHostKeyChecking=no ubuntu@13.126.82.12 "
+                            cd /home/ubuntu/apps/flask-cicd-demo &&
+
+                            git pull origin main &&
+
+                            source venv/bin/activate &&
+
+                            pip install -r requirements.txt &&
+
+                            pkill -f 'python app.py' || true &&
+
+                            nohup python app.py > app.log 2>&1 &
+                        "
+                    '''
+                }
+            }
+        }
     }
 
     post {
