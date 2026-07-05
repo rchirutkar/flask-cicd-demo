@@ -2,7 +2,6 @@ pipeline {
     agent {
 		label 'Ranjeet_node'
     }
-
     environment {
         VENV = "venv"
         MONGO_URI = credentials('mongo-uri')
