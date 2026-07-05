@@ -4,7 +4,7 @@ pipeline {
     agent {
         docker {
             image 'python:3.12'
-			label 'Jenkins' // Run this pipeline on the Jenkins agent. This is important because we want to ensure that the pipeline runs in a consistent environment, which is provided by the Jenkins agent.
+			label 'Built-In Node' // Run this pipeline on the Jenkins agent. This is important because we want to ensure that the pipeline runs in a consistent environment, which is provided by the Jenkins agent.
         }
     }
 
