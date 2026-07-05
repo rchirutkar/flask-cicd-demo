@@ -109,24 +109,21 @@ pipeline {
             steps {
                 sh '''
                     cd /home/ubuntu/apps/flask-cicd-demo
-        
+
                     git fetch origin
                     git reset --hard origin/main
-        
+
                     . venv/bin/activate
-        
                     python -m pip install -r requirements.txt
-        
-                    pkill -f "python app.py" || true
-        
-                    nohup python app.py > app.log 2>&1 < /dev/null &
-        
+
+                    sudo systemctl restart flask-demo
+
                     sleep 5
-        
+
                     curl http://localhost:8000/health
                 '''
             }
-        }  
+        }
     }
 
     post {
