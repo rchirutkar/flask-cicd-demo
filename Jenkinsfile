@@ -78,4 +78,53 @@ pipeline {
             echo "Build failed."
         }
     }
+	post {
+	    success {
+			echo "Build completed successfully."
+	        emailext(
+	            subject: "SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+	            body: """
+					Hello,
+					
+					Your Jenkins build completed successfully.
+					
+					Job Name     : ${env.JOB_NAME}
+					Build Number : ${env.BUILD_NUMBER}
+					Build Status : SUCCESS
+					
+					Build URL:
+					${env.BUILD_URL}
+					
+					Regards,
+					Jenkins CI/CD
+					""",
+	            to: "rchirutkar786@gmail.com"
+	        )
+	    }
+	
+	    failure {
+			echo "Build failed."
+	        emailext(
+	            subject: "FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+	            body: """
+					Hello,
+					
+					Your Jenkins build has failed.
+					
+					Job Name     : ${env.JOB_NAME}
+					Build Number : ${env.BUILD_NUMBER}
+					Build Status : FAILED
+					
+					Build URL:
+					${env.BUILD_URL}
+					
+					Please check the console output for details.
+					
+					Regards,
+					Jenkins CI/CD
+					""",
+	            to: "rchirutkar786@gmail.com"
+	        )
+	    }
+	}
 }
