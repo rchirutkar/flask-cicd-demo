@@ -16,7 +16,7 @@ permissions:
 jobs:
 
   build-test:
-    name: Build & Test
+    name: Build and Test
     runs-on: ubuntu-latest
 
     env:
@@ -24,7 +24,6 @@ jobs:
       SECRET_KEY: ${{ secrets.SECRET_KEY }}
 
     steps:
-
       - name: Checkout Repository
         uses: actions/checkout@v4
 
@@ -33,7 +32,7 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Verify Python Version
+      - name: Verify Python
         run: |
           python --version
           pip --version
@@ -43,14 +42,14 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run Unit Tests
+      - name: Run Tests
         run: |
           python -m pytest -v
 
       - name: Build Validation
         run: |
           python -m py_compile app.py
-          echo "Build completed successfully."
+          echo "Application build successful."
 
   deploy-staging:
     name: Deploy to Staging
@@ -67,22 +66,26 @@ jobs:
 
     steps:
 
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
       - name: Configure SSH
+        shell: bash
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
         run: |
           mkdir -p ~/.ssh
 
-          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          echo "$EC2_SSH_KEY" > ~/.ssh/id_rsa
 
           chmod 600 ~/.ssh/id_rsa
 
-          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
-
-      - name: Deploy Application to Staging
+      - name: Deploy Application
+        shell: bash
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
         run: |
-          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} << 'EOF'
 
           set -e
 
@@ -98,13 +101,13 @@ jobs:
 
           pkill -f "python app.py" || true
 
-          nohup python app.py > app.log 2>&1 < /dev/null &
+          sudo systemctl restart flask-demo
 
           sleep 5
 
           curl --fail http://localhost:8000/health
 
-          echo "Staging Deployment Successful."
+          echo "Staging deployment completed."
 
           EOF
 
@@ -123,22 +126,26 @@ jobs:
 
     steps:
 
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
       - name: Configure SSH
+        shell: bash
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
         run: |
           mkdir -p ~/.ssh
 
-          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          echo "$EC2_SSH_KEY" > ~/.ssh/id_rsa
 
           chmod 600 ~/.ssh/id_rsa
 
-          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
-
-      - name: Deploy Application to Production
+      - name: Deploy Application
+        shell: bash
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
         run: |
-          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${EC2_USER}@${EC2_HOST} << 'EOF'
 
           set -e
 
@@ -160,6 +167,6 @@ jobs:
 
           curl --fail http://localhost:8000/health
 
-          echo "Production Deployment Successful."
+          echo "Production deployment completed."
 
           EOF
