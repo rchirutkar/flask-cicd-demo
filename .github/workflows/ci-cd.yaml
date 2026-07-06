@@ -63,7 +63,7 @@ jobs:
 
     environment:
       name: staging
-      url: http://${{ secrets.EC2_HOST }}:8000
+      url: ${{ vars.EC2_URL }}
 
     steps:
 
@@ -119,7 +119,7 @@ jobs:
 
     environment:
       name: prod
-      url: http://${{ secrets.EC2_HOST }}:8000
+      url: ${{ vars.EC2_URL }}
 
     steps:
 
