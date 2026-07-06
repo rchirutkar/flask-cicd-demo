@@ -112,7 +112,7 @@ jobs:
           EOF
 
   deploy-production:
-    name: Deploy to Production
+    name: Deploy to Production 
 
     needs: build-test
 
