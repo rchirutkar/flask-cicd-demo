@@ -90,6 +90,64 @@ The deployment target is an AWS EC2 Ubuntu instance where the application runs a
 
 ---
 
+# Overview
+
+                    Developer
+                        │
+                        │
+                  Git Push (main)
+                        │
+                        ▼
+               GitHub Repository
+                        │
+             SCM Polling (Jenkins)
+                        │
+                        ▼
+               Jenkins Pipeline Server
+                        │
+     ┌──────────────────┼──────────────────┐
+     │                  │                  │
+     ▼                  ▼                  ▼
+ Checkout            Build              Test
+ (Git Clone)   (Install Packages)    (Pytest)
+                        │
+                        ▼
+                   Deploy Stage
+                        │
+                 SSH to AWS EC2
+                        │
+                        ▼
+              AWS EC2 Ubuntu Server
+                        │
+            Git Pull (origin/main)
+                        │
+            Activate Python venv
+                        │
+          Install Dependencies
+                        │
+          Restart Flask Application
+                        │
+             Health Check (/health)
+                        │
+                        ▼
+             Flask Web Application
+                        │
+                        ▼
+              MongoDB Atlas Cluster
+
+───────────────────────────────────────────────
+
+        Gmail SMTP
+             ▲
+             │
+     Success / Failure
+      Email Notification
+             │
+             ▼
+          Developer
+
+---
+
 # Repository Structure
 
 ```text
