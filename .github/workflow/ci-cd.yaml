@@ -10,10 +10,13 @@ on:
     types:
       - published
 
+permissions:
+  contents: read
+
 jobs:
 
-  test-build:
-
+  build-test:
+    name: Build & Test
     runs-on: ubuntu-latest
 
     env:
@@ -22,48 +25,66 @@ jobs:
 
     steps:
 
-    - name: Checkout Repository
-      uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-    - name: Setup Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.12'
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
-    - name: Install Dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+      - name: Verify Python Version
+        run: |
+          python --version
+          pip --version
 
-    - name: Run Tests
-      run: |
-        python -m pytest -v
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-    - name: Build
-      run: |
-        echo "Application built successfully."
+      - name: Run Unit Tests
+        run: |
+          python -m pytest -v
 
-deploy-staging:
+      - name: Build Validation
+        run: |
+          python -m py_compile app.py
+          echo "Build completed successfully."
 
-    needs: test-build
+  deploy-staging:
+    name: Deploy to Staging
+
+    needs: build-test
 
     if: github.ref == 'refs/heads/staging'
 
     runs-on: ubuntu-latest
 
+    environment:
+      name: staging
+      url: http://${{ secrets.EC2_HOST }}:8000
+
     steps:
 
-    - uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-    - name: Deploy to Staging
-      uses: appleboy/ssh-action@v1.0.3
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
 
-      with:
-        host: ${{ secrets.EC2_HOST }}
-        username: ${{ secrets.EC2_USER }}
-        key: ${{ secrets.EC2_SSH_KEY }}
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
 
-        script: |
+          chmod 600 ~/.ssh/id_rsa
+
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy Application to Staging
+        run: |
+          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+
+          set -e
 
           cd /home/ubuntu/apps/flask-cicd-demo
 
@@ -81,32 +102,45 @@ deploy-staging:
 
           sleep 5
 
-          curl http://localhost:8000/health
+          curl --fail http://localhost:8000/health
 
-deploy-production:
+          echo "Staging Deployment Successful."
 
-    needs: test-build
+          EOF
 
-    if: startsWith(github.ref,'refs/tags/')
+  deploy-production:
+    name: Deploy to Production
+
+    needs: build-test
+
+    if: github.event_name == 'release'
 
     runs-on: ubuntu-latest
 
+    environment:
+      name: prod
+      url: http://${{ secrets.EC2_HOST }}:8000
+
     steps:
 
-    - uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-    - name: Deploy Production
-      uses: appleboy/ssh-action@v1.0.3
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
 
-      with:
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
 
-        host: ${{ secrets.EC2_HOST }}
+          chmod 600 ~/.ssh/id_rsa
 
-        username: ${{ secrets.EC2_USER }}
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
-        key: ${{ secrets.EC2_SSH_KEY }}
+      - name: Deploy Application to Production
+        run: |
+          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
 
-        script: |
+          set -e
 
           cd /home/ubuntu/apps/flask-cicd-demo
 
@@ -120,8 +154,12 @@ deploy-production:
 
           pkill -f "python app.py" || true
 
-          nohup python app.py > app.log 2>&1 < /dev/null &
+          sudo systemctl restart flask-demo
 
           sleep 5
 
-          curl http://localhost:8000/health
+          curl --fail http://localhost:8000/health
+
+          echo "Production Deployment Successful."
+
+          EOF
